@@ -26,10 +26,10 @@ public interface IRepository<T> where T : class
 
 public class Repository<T> : IRepository<T> where T : class
 {
-    private readonly PostgreDbContext _context;
+    private readonly PostgresDbContext _context;
     private readonly DbSet<T> _dbSet;
 
-    public Repository(PostgreDbContext context)
+    public Repository(PostgresDbContext context)
     {
         _context = context;
         _dbSet = _context.Set<T>();
