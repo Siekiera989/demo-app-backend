@@ -13,3 +13,9 @@ D:\private\DemoApp\backend\DemoApp.Services\obj\Debug\net8.0\DemoApp.Services.dl
 D:\private\DemoApp\backend\DemoApp.Services\obj\Debug\net8.0\refint\DemoApp.Services.dll
 D:\private\DemoApp\backend\DemoApp.Services\obj\Debug\net8.0\DemoApp.Services.pdb
 D:\private\DemoApp\backend\DemoApp.Services\obj\Debug\net8.0\ref\DemoApp.Services.dll
+D:\private\DemoApp\backend\DemoApp.Services\obj\Debug\net8.0\DemoApp.Services.sourcelink.json
+D:\private\DemoApp\backend\DemoApp.Services\bin\Debug\net8.0\Microsoft.Extensions.Hosting.Abstractions.dll
+D:\private\DemoApp\backend\DemoApp.Services\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+D:\private\DemoApp\backend\DemoApp.Services\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
+D:\private\DemoApp\backend\DemoApp.Services\bin\Debug\net8.0\Microsoft.Extensions.Diagnostics.Abstractions.dll
+D:\private\DemoApp\backend\DemoApp.Services\bin\Debug\net8.0\Microsoft.Extensions.Options.dll

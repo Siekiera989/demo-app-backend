@@ -2,11 +2,7 @@
 
 namespace DemoApp.Models.Request;
 
-public class LoginRequest : HttpRequestBase<LoginRequestBody>
-{
-    public LoginRequest(Uri url, LoginRequestBody body)
-        : base("POST", url, body) { }
-}
+public class LoginRequest(LoginRequestBody body) : HttpRequestBase<LoginRequestBody>(body);
 
 public class LoginRequestBody
 {
