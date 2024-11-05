@@ -1,0 +1,25 @@
+﻿using Autofac;
+using DemoApp.Core.Configuration;
+using DemoApp.DataAccessLayer.DbContext;
+using DemoApp.DataAccessLayer.Repository;
+using Microsoft.EntityFrameworkCore;
+
+namespace DemoApp.DataAccessLayer.DependencyInjection;
+
+public class DataAccessLayerModule : Module
+{
+    protected override void Load(ContainerBuilder builder)
+    {
+        builder.Register(context =>
+        {
+            var dbConfig = context.Resolve<IDbConfiguration>();
+            var optionsBuilder = new DbContextOptionsBuilder<PostgreDbContext>();
+            optionsBuilder.UseNpgsql(dbConfig.ConnectionString);
+            return new PostgreDbContext(optionsBuilder.Options);
+        }).AsSelf().InstancePerLifetimeScope();
+
+        builder.RegisterGeneric(typeof(Repository<>))
+            .As(typeof(IRepository<>))
+            .InstancePerLifetimeScope();
+    }
+}

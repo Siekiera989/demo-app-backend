@@ -16,9 +16,9 @@ public class ConfigurationModule : Module
         var configuration = configurationBuilder.Build();
 
         var jwtConfiguration = configuration.BindConfig<JwtConfiguration>();
+        var dbConfiguration = configuration.BindConfig<DbConfiguration>();
 
-        builder.RegisterInstance(jwtConfiguration)
-            .As<IJwtConfiguration>()
-            .SingleInstance();
+        builder.RegisterInstance(jwtConfiguration).As<IJwtConfiguration>().SingleInstance();
+        builder.RegisterInstance(dbConfiguration).As<IDbConfiguration>().SingleInstance();
     }
 }

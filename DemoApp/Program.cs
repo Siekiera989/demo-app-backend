@@ -1,6 +1,7 @@
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using DemoApp.Core.DependencyInjection;
+using DemoApp.DataAccessLayer.DependencyInjection;
 using DemoApp.Services.DependencyInjection;
 using Serilog;
 
@@ -11,7 +12,7 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
-builder.Host.UseSerilog(); 
+builder.Host.UseSerilog();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -20,6 +21,7 @@ builder.Services.AddSwaggerGen();
 builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
 {
     containerBuilder.RegisterModule<ConfigurationModule>();
+    containerBuilder.RegisterModule<DataAccessLayerModule>();
     containerBuilder.RegisterModule<CoreServicesModule>();
     containerBuilder.RegisterModule<LoggerModule>();
     containerBuilder.RegisterModule<ServicesModule>();
