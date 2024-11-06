@@ -13,7 +13,6 @@ public class DataAccessLayerModule : Module
         builder.Register(context =>
         {
             var dbConfig = context.Resolve<IDbConfiguration>();
-            Console.WriteLine(dbConfig.ConnectionString);
             var optionsBuilder = new DbContextOptionsBuilder<PostgresDbContext>();
             optionsBuilder.UseNpgsql(dbConfig.ConnectionString);
             return new PostgresDbContext(optionsBuilder.Options);
