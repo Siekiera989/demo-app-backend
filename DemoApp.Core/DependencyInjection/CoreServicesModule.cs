@@ -9,8 +9,9 @@ public class CoreServicesModule : Module
     protected override void Load(ContainerBuilder builder)
     {
         builder.RegisterType<EnvironmentVariableService>()
-            .As<IHostedService>()   
-            .AsSelf()               
-            .SingleInstance();      
+            .As<IHostedService>()
+            .As<IEnvironmentVariableProvider>()
+            .AsSelf()
+            .SingleInstance();
     }
 }

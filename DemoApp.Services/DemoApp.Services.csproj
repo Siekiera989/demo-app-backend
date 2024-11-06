@@ -12,11 +12,13 @@
 
     <ItemGroup>
       <PackageReference Include="Autofac" Version="8.1.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="8.0.10"/>
       <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.1.2" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\DemoApp.Core\DemoApp.Core.csproj" />
+        <ProjectReference Include="..\DemoApp.DataAccessLayer\DemoApp.DataAccessLayer.csproj"/>
     </ItemGroup>
 
 </Project>

@@ -8,6 +8,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemoApp.DataAccessLayer", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemoApp.Core", "DemoApp.Core\DemoApp.Core.csproj", "{4437707A-53C0-4E04-BCFD-68526A55AC2A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{6DCE77B2-DF98-41C7-8A58-FAAFE9C41394}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemoApp.Services.UnitTests", "tests\DemoApp.Services.UnitTests\DemoApp.Services.UnitTests.csproj", "{07D798EC-6487-45ED-A4E5-E3DCCEE5DF87}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +34,12 @@ Global
 		{4437707A-53C0-4E04-BCFD-68526A55AC2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4437707A-53C0-4E04-BCFD-68526A55AC2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4437707A-53C0-4E04-BCFD-68526A55AC2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07D798EC-6487-45ED-A4E5-E3DCCEE5DF87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07D798EC-6487-45ED-A4E5-E3DCCEE5DF87}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07D798EC-6487-45ED-A4E5-E3DCCEE5DF87}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07D798EC-6487-45ED-A4E5-E3DCCEE5DF87}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{07D798EC-6487-45ED-A4E5-E3DCCEE5DF87} = {6DCE77B2-DF98-41C7-8A58-FAAFE9C41394}
 	EndGlobalSection
 EndGlobal

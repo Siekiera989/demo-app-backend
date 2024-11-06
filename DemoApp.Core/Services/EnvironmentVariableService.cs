@@ -4,7 +4,8 @@ using Microsoft.Extensions.Hosting;
 
 namespace DemoApp.Core.Services;
 
-public class EnvironmentVariableService(IJwtConfiguration jwtConfiguration) : IHostedService
+public class EnvironmentVariableService(IJwtConfiguration jwtConfiguration)
+    : IHostedService, IEnvironmentVariableProvider
 {
     private readonly Dictionary<string, string> _requiredVariables = new()
     {
@@ -16,7 +17,7 @@ public class EnvironmentVariableService(IJwtConfiguration jwtConfiguration) : IH
     public Task StartAsync(CancellationToken cancellationToken)
     {
         foreach (var variable in _requiredVariables
-                     .Where(variable => 
+                     .Where(variable =>
                          string.IsNullOrEmpty(Environment.GetEnvironmentVariable(variable.Key))))
         {
             Environment.SetEnvironmentVariable(variable.Key, variable.Value);
@@ -29,7 +30,12 @@ public class EnvironmentVariableService(IJwtConfiguration jwtConfiguration) : IH
 
     public string GetEnvironmentVariable(string key)
     {
-        return Environment.GetEnvironmentVariable(key) 
+        return Environment.GetEnvironmentVariable(key)
                ?? throw new KeyNotFoundException($"Environment variable '{key}' could not found");
     }
+}
+
+public interface IEnvironmentVariableProvider
+{
+    string GetEnvironmentVariable(string key);
 }

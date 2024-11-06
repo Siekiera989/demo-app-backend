@@ -10,5 +10,6 @@ public class ServicesModule : Module
     {
         builder.RegisterType<UserService>().As<IUserService>().SingleInstance();
         builder.RegisterType<JwtTokenProvider>().As<IJwtTokenProvider>().SingleInstance();
+        builder.RegisterType<PasswordService>().As<IPasswordService>().SingleInstance();
     }
 }
