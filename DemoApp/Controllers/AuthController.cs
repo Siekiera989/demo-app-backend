@@ -11,14 +11,18 @@ namespace DemoApp.Controllers;
 public class AuthController(IUserService userService, IJwtTokenProvider jwtTokenProvider)
     : Controller
 {
-    private readonly IJwtTokenProvider _jwtTokenProvider = jwtTokenProvider;
-
     [HttpPost("login")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<LoginResponse>> Login(LoginRequest request)
     {
-        var result = await userService.LoginAsync(request.Body.Username, request.Body.Password);
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var result = await userService.LoginAsync(request.Email, request.Password);
 
         if (!result)
         {
@@ -28,13 +32,36 @@ public class AuthController(IUserService userService, IJwtTokenProvider jwtToken
                 Message = "Login failed"
             });
         }
-        
-        var token = _jwtTokenProvider.GenerateToken(request.Body.Username);
-        
+
+        var token = jwtTokenProvider.GenerateToken(request.Email);
+
         return new LoginResponse(HttpStatusCode.OK, new LoginResponseBody()
         {
             Token = token,
             Message = "Login successful"
         });
+    }
+
+    [HttpPost("register")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<RegistrationResponse>> Register(RegisterRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var result = await userService.RegisterAsync(request.Email, request.Password);
+
+        return !result
+            ? new RegistrationResponse(HttpStatusCode.BadRequest, new RegistrationResponseBody()
+            {
+                Message = "Could not register user"
+            })
+            : new RegistrationResponse(HttpStatusCode.OK, new RegistrationResponseBody()
+            {
+                Message = "Registration successful"
+            });
     }
 }

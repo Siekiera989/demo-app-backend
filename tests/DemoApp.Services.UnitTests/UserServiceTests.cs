@@ -82,4 +82,70 @@ public class UserServiceTests
         // Assert
         Assert.False(result);
     }
+
+    [Fact]
+    public async Task RegisterAsync_ShouldReturnTrue_WhenUserIsRegisteredSuccessfully()
+    {
+        // Arrange
+        const string requestEmail = "test@example.com";
+        const string requestPassword = "password123";
+        const string hashedPassword = "hashedPassword123";
+
+        _passwordServiceMock
+            .Setup(ps => ps.HashPassword(requestPassword))
+            .Returns(hashedPassword);
+
+        _repositoryMock
+            .Setup(r => r.Add(It.IsAny<User>()))
+            .Verifiable();
+
+        _repositoryMock
+            .Setup(r => r.SaveChangesAsync())
+            .ReturnsAsync(1);
+
+        // Act
+        var result = await _userService.RegisterAsync(requestEmail, requestPassword);
+
+        // Assert
+        Assert.True(result);
+        _passwordServiceMock.Verify(ps => ps.HashPassword(requestPassword), Times.Once);
+        _repositoryMock.Verify(r => r.Add(It.Is<User>(u =>
+            u.UserName == requestEmail &&
+            u.Email == requestEmail &&
+            u.PasswordHash == hashedPassword)), Times.Once);
+        _repositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_ShouldReturnFalse_WhenSaveChangesFails()
+    {
+        // Arrange
+        const string requestEmail = "test@example.com";
+        const string requestPassword = "password123";
+        const string hashedPassword = "hashedPassword123";
+
+        _passwordServiceMock
+            .Setup(ps => ps.HashPassword(requestPassword))
+            .Returns(hashedPassword);
+
+        _repositoryMock
+            .Setup(r => r.Add(It.IsAny<User>()))
+            .Verifiable();
+
+        _repositoryMock
+            .Setup(r => r.SaveChangesAsync())
+            .ReturnsAsync(0);
+
+        // Act
+        var result = await _userService.RegisterAsync(requestEmail, requestPassword);
+
+        // Assert
+        Assert.False(result);
+        _passwordServiceMock.Verify(ps => ps.HashPassword(requestPassword), Times.Once);
+        _repositoryMock.Verify(r => r.Add(It.Is<User>(u =>
+            u.UserName == requestEmail &&
+            u.Email == requestEmail &&
+            u.PasswordHash == hashedPassword)), Times.Once);
+        _repositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
+    }
 }

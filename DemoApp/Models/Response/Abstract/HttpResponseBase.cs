@@ -2,16 +2,10 @@
 
 namespace DemoApp.Models.Response.Abstract;
 
-public abstract class HttpResponseBase<T>
+public abstract class HttpResponseBase<T>(HttpStatusCode statusCode, T body = default)
 {
-    public HttpStatusCode StatusCode { get; set; }
-    public T Body { get; set; }
-
-    protected HttpResponseBase(HttpStatusCode statusCode, T body = default)
-    {
-        StatusCode = statusCode;
-        Body = body;
-    }
+    public HttpStatusCode StatusCode { get; set; } = statusCode;
+    public T Body { get; set; } = body;
 
     public override string ToString()
     {
