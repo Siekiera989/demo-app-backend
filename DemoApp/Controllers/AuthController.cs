@@ -2,6 +2,7 @@
 using DemoApp.Models.Request;
 using DemoApp.Models.Response;
 using DemoApp.Services.Contracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DemoApp.Controllers;
@@ -63,5 +64,15 @@ public class AuthController(IUserService userService, IJwtTokenProvider jwtToken
             {
                 Message = "Registration successful"
             });
+    }
+
+    [HttpPost("logout")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [Authorize]
+    public async Task<IActionResult> Logout()
+    {
+        if (Guid.TryParse(User.FindFirst("sub")?.Value, out var userId)) ;
+        await userService.Logout(userId);
+        return Ok("Logged out successfully.");
     }
 }

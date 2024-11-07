@@ -4,11 +4,14 @@ using DemoApp.Services.Contracts;
 
 namespace DemoApp.Services.Services;
 
-public class UserService(IRepository<User> repository, IPasswordService passwordService) : IUserService
+public class UserService(
+    IRepository<User> userRepository,
+    IRepository<RefreshToken> refreshTokenRepository,
+    IPasswordService passwordService) : IUserService
 {
     public async Task<bool> LoginAsync(string username, string password)
     {
-        var user = await repository.GetAsync(x => x.Email == username || x.UserName == username);
+        var user = await userRepository.GetAsync(x => x.Email == username || x.UserName == username);
 
         if (user == null)
             return false;
@@ -29,9 +32,28 @@ public class UserService(IRepository<User> repository, IPasswordService password
             CreatedAt = DateTime.UtcNow,
         };
 
-        repository.Add(newUser);
-        var saveResult = await repository.SaveChangesAsync();
+        userRepository.Add(newUser);
+        var saveResult = await userRepository.SaveChangesAsync();
 
         return saveResult == 1;
+    }
+
+    public async Task Logout(Guid userId)
+    {
+        var refreshTokens = await refreshTokenRepository.GetListAsync(rt =>
+            rt.UserId == userId && !rt.IsRevoked && rt.ExpiresAt > DateTime.UtcNow);
+
+        if (!refreshTokens.Any())
+        {
+            return;
+        }
+
+        foreach (var token in refreshTokens)
+        {
+            token.IsRevoked = true;
+            token.ExpiresAt = DateTime.UtcNow;
+        }
+
+        await refreshTokenRepository.SaveChangesAsync();
     }
 }

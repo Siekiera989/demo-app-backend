@@ -8,15 +8,17 @@ namespace DemoApp.Services.UnitTests;
 
 public class UserServiceTests
 {
-    private readonly Mock<IRepository<User>> _repositoryMock;
+    private readonly Mock<IRepository<User>> _userRepositoryMock;
+    private readonly Mock<IRepository<RefreshToken>> _refreshTokenRepositoryMock;
     private readonly Mock<IPasswordService> _passwordServiceMock;
     private readonly UserService _userService;
 
     public UserServiceTests()
     {
-        _repositoryMock = new Mock<IRepository<User>>();
-        _passwordServiceMock = new Mock<IPasswordService>();
-        _userService = new UserService(_repositoryMock.Object, _passwordServiceMock.Object);
+        _userRepositoryMock = new();
+        _refreshTokenRepositoryMock = new();
+        _passwordServiceMock = new();
+        _userService = new(_userRepositoryMock.Object, _refreshTokenRepositoryMock.Object, _passwordServiceMock.Object);
     }
 
     [Fact]
@@ -27,7 +29,7 @@ public class UserServiceTests
         const string password = "correctPassword";
         var user = new User { UserName = username, PasswordHash = "hashedPassword" };
 
-        _repositoryMock
+        _userRepositoryMock
             .Setup(r => r.GetAsync(It.IsAny<Expression<Func<User, bool>>>()))
             .ReturnsAsync(user);
 
@@ -50,7 +52,7 @@ public class UserServiceTests
         const string password = "incorrectPassword";
         var user = new User { UserName = username, PasswordHash = "hashedPassword" };
 
-        _repositoryMock
+        _userRepositoryMock
             .Setup(r => r.GetAsync(It.IsAny<Expression<Func<User, bool>>>()))
             .ReturnsAsync(user);
 
@@ -72,7 +74,7 @@ public class UserServiceTests
         const string username = "nonexistentuser";
         const string password = "anyPassword";
 
-        _repositoryMock
+        _userRepositoryMock
             .Setup(r => r.GetAsync(It.IsAny<Expression<Func<User, bool>>>()))
             .ReturnsAsync((User)null);
 
@@ -95,11 +97,11 @@ public class UserServiceTests
             .Setup(ps => ps.HashPassword(requestPassword))
             .Returns(hashedPassword);
 
-        _repositoryMock
+        _userRepositoryMock
             .Setup(r => r.Add(It.IsAny<User>()))
             .Verifiable();
 
-        _repositoryMock
+        _userRepositoryMock
             .Setup(r => r.SaveChangesAsync())
             .ReturnsAsync(1);
 
@@ -109,11 +111,11 @@ public class UserServiceTests
         // Assert
         Assert.True(result);
         _passwordServiceMock.Verify(ps => ps.HashPassword(requestPassword), Times.Once);
-        _repositoryMock.Verify(r => r.Add(It.Is<User>(u =>
+        _userRepositoryMock.Verify(r => r.Add(It.Is<User>(u =>
             u.UserName == requestEmail &&
             u.Email == requestEmail &&
             u.PasswordHash == hashedPassword)), Times.Once);
-        _repositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
+        _userRepositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
@@ -128,11 +130,11 @@ public class UserServiceTests
             .Setup(ps => ps.HashPassword(requestPassword))
             .Returns(hashedPassword);
 
-        _repositoryMock
+        _userRepositoryMock
             .Setup(r => r.Add(It.IsAny<User>()))
             .Verifiable();
 
-        _repositoryMock
+        _userRepositoryMock
             .Setup(r => r.SaveChangesAsync())
             .ReturnsAsync(0);
 
@@ -142,10 +144,81 @@ public class UserServiceTests
         // Assert
         Assert.False(result);
         _passwordServiceMock.Verify(ps => ps.HashPassword(requestPassword), Times.Once);
-        _repositoryMock.Verify(r => r.Add(It.Is<User>(u =>
+        _userRepositoryMock.Verify(r => r.Add(It.Is<User>(u =>
             u.UserName == requestEmail &&
             u.Email == requestEmail &&
             u.PasswordHash == hashedPassword)), Times.Once);
-        _repositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
+        _userRepositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Logout_Should_Revoke_ActiveTokens()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var refreshTokens = new List<RefreshToken>
+        {
+            new RefreshToken { UserId = userId, IsRevoked = false, ExpiresAt = DateTime.UtcNow.AddMinutes(10) },
+            new RefreshToken { UserId = userId, IsRevoked = false, ExpiresAt = DateTime.UtcNow.AddMinutes(20) }
+        };
+
+        // Mock the repository to return the test tokens
+        _refreshTokenRepositoryMock
+            .Setup(repo => repo.GetListAsync(It.IsAny<Expression<Func<RefreshToken, bool>>>()))
+            .ReturnsAsync(refreshTokens);
+
+        // Act
+        await _userService.Logout(userId);
+
+        // Assert
+        foreach (var token in refreshTokens)
+        {
+            Assert.True(token.IsRevoked);
+            Assert.True(token.ExpiresAt <= DateTime.UtcNow);
+        }
+
+        _refreshTokenRepositoryMock.Verify(repo => repo.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Logout_Should_Not_Revoke_AlreadyRevokedTokens()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var refreshTokens = new List<RefreshToken>
+        {
+            new RefreshToken { UserId = userId, IsRevoked = true, ExpiresAt = DateTime.UtcNow.AddMinutes(10) },
+            new RefreshToken { UserId = userId, IsRevoked = false, ExpiresAt = DateTime.UtcNow.AddMinutes(20) }
+        };
+
+        _refreshTokenRepositoryMock
+            .Setup(repo => repo.GetListAsync(It.IsAny<Expression<Func<RefreshToken, bool>>>()))
+            .ReturnsAsync(refreshTokens);
+
+        // Act
+        await _userService.Logout(userId);
+
+        // Assert
+        Assert.True(refreshTokens[0].IsRevoked);
+        Assert.True(refreshTokens[1].IsRevoked);
+        _refreshTokenRepositoryMock.Verify(repo => repo.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Logout_Should_Not_Call_SaveChanges_When_No_Tokens_To_Revoke()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var refreshTokens = new List<RefreshToken>();
+
+        _refreshTokenRepositoryMock
+            .Setup(repo => repo.GetListAsync(It.IsAny<Expression<Func<RefreshToken, bool>>>()))
+            .ReturnsAsync(refreshTokens);
+
+        // Act
+        await _userService.Logout(userId);
+
+        // Assert
+        _refreshTokenRepositoryMock.Verify(repo => repo.SaveChangesAsync(), Times.Never);
     }
 }
