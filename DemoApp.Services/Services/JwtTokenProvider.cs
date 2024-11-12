@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using DemoApp.Core.Configuration;
 using DemoApp.Core.Constants;
 using DemoApp.Core.Services;
 using DemoApp.Services.Contracts;
@@ -10,26 +11,21 @@ using Serilog;
 
 namespace DemoApp.Services.Services;
 
-public class JwtTokenProvider : IJwtTokenProvider
+public class JwtTokenProvider(
+    ILogger logger,
+    IEnvironmentVariableProvider environmentVariableProvider,
+    IJwtConfiguration jwtConfiguration)
+    : IJwtTokenProvider
 {
-    private readonly ILogger _logger;
-    private readonly IEnvironmentVariableProvider _environmentVariableProvider;
-
-    public JwtTokenProvider(ILogger logger, IEnvironmentVariableProvider environmentVariableProvider)
-    {
-        _logger = logger;
-        _environmentVariableProvider = environmentVariableProvider;
-    }
-
     public string GenerateToken(string email)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = _environmentVariableProvider.GetEnvironmentVariable(EnvironmentVariables.JwtSecretKey);
+        var key = environmentVariableProvider.GetEnvironmentVariable(EnvironmentVariables.JwtSecretKey);
 
         if (string.IsNullOrWhiteSpace(key))
         {
             var message = $"Environment variable {EnvironmentVariables.JwtSecretKey} not found";
-            _logger.Error(message);
+            logger.Error(message);
             throw new JwtTokenProviderException(message);
         }
 
@@ -43,9 +39,9 @@ public class JwtTokenProvider : IJwtTokenProvider
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddMinutes(60),
-            Issuer = _environmentVariableProvider.GetEnvironmentVariable(EnvironmentVariables.Issuer),
-            Audience = _environmentVariableProvider.GetEnvironmentVariable(EnvironmentVariables.Audience),
+            Expires = DateTime.UtcNow.AddMinutes(jwtConfiguration.TokenLifetime),
+            Issuer = environmentVariableProvider.GetEnvironmentVariable(EnvironmentVariables.Issuer),
+            Audience = environmentVariableProvider.GetEnvironmentVariable(EnvironmentVariables.Audience),
             SigningCredentials =
                 new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
                     SecurityAlgorithms.HmacSha256Signature)

@@ -1,4 +1,5 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using DemoApp.Core.Configuration;
 using DemoApp.Core.Constants;
 using DemoApp.Core.Services;
 using DemoApp.Services.Exceptions;
@@ -18,7 +19,9 @@ public class JwtTokenProviderTests
     {
         _loggerMock = new Mock<ILogger>();
         _environmentVariableProviderMock = new Mock<IEnvironmentVariableProvider>();
-        _jwtTokenProvider = new JwtTokenProvider(_loggerMock.Object, _environmentVariableProviderMock.Object);
+        IJwtConfiguration jwtConfiguration = new JwtConfiguration();
+        _jwtTokenProvider =
+            new JwtTokenProvider(_loggerMock.Object, _environmentVariableProviderMock.Object, jwtConfiguration);
     }
 
     [Fact]
